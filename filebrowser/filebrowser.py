@@ -14,7 +14,7 @@ class FileBrowserClient(FileBrowserClientIFace):
         self.auth_token = None
         self.share_token_cache = {}  # caches for token to avoid replicated http request
 
-    def authenticate(self, username: str, password: str) -> bool:
+    def authenticate(self, username: str, password: str):
         auth_url = build_url_from_base_url(self.base_url, "/api/login")
         resp = self.s.post(auth_url, json={
             "username": username,
@@ -66,3 +66,5 @@ class FileBrowserClient(FileBrowserClientIFace):
 
     def build_auth_download_url(self, fpath: str) -> str:
         return build_url_from_base_url(self.base_url, f'/api/raw/{fpath}')
+
+
