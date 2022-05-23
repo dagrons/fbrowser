@@ -16,7 +16,7 @@ def main():
     parser.add_argument("target", metavar="target", type=str)
     args = parser.parse_args()
 
-    s = filebrowser.FileBrowserClient(args.ip, args.port)
+    s = filebrowser.Machine(args.ip, args.port)
     if args.type == "share":
         s.download_shared_file(args.code, args.source, args.spass, args.target)
     elif args.type == "auth":

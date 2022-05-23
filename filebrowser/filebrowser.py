@@ -5,8 +5,26 @@ from .iface import FileBrowserClientIFace
 from .utils import *
 
 
+class FileBrowserClient:
+    def __init__(self):
+        self.machine_list = []
+
+    def with_host(self, host: str, port: str, username: str, password: str):
+        self.machine_list.append(Machine(host, port).authenticate(username, password))
+        return self
+
+    def download_auth_file(self, fpath: str, save_path: str) -> bool:
+        for machine in self.machine_list:
+            try:
+                machine.download_auth_file(fpath, save_path)
+                return True
+            except DownLoadException:
+                pass
+        return False
+
+
 # wrap the http api as a client
-class FileBrowserClient(FileBrowserClientIFace):
+class Machine(FileBrowserClientIFace):
 
     def __init__(self, host: str, port: str):
         self.s = requests.Session()
@@ -23,6 +41,7 @@ class FileBrowserClient(FileBrowserClientIFace):
         if resp.status_code != 200:
             raise AuthenticationFailedException(resp.status_code, username, password)
         self.auth_token = resp.text
+        return self
 
     def download_shared_file(self, code: str, fpath: str, share_password: str, save_path: str):
         url = self.build_share_download_url(code, fpath, self.get_share_token(code, share_password))
