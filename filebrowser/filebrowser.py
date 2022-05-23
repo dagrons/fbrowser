@@ -1,3 +1,5 @@
+import logging
+
 import requests
 
 from .errors import GetTokenFailedException, AuthenticationFailedException, DownLoadException, NoCredentialsException
@@ -13,14 +15,17 @@ class FileBrowserClient:
         self.machine_list.append(Machine(host, port).authenticate(username, password))
         return self
 
-    def download_auth_file(self, fpath: str, save_path: str) -> bool:
+    def download_auth_file(self, fpath: str, save_path: str):
+        error = None
         for machine in self.machine_list:
             try:
                 machine.download_auth_file(fpath, save_path)
                 return True
-            except DownLoadException:
+            except DownLoadException as err:
+                error = err
                 pass
-        return False
+        if error is not None:
+            raise error
 
 
 # wrap the http api as a client
