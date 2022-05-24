@@ -1,19 +1,27 @@
 import logging
+from dataclasses import dataclass
 
 import requests
+from typing import List
 
 from .errors import GetTokenFailedException, AuthenticationFailedException, DownLoadException, NoCredentialsException
 from .iface import FileBrowserClientIFace
 from .utils import *
 
 
-class FileBrowserClient:
-    def __init__(self):
-        self.machine_list = []
+@dataclass
+class HostInfo:
+    host: str
+    port: str
+    username: str
+    password: str
 
-    def with_host(self, host: str, port: str, username: str, password: str):
-        self.machine_list.append(Machine(host, port).authenticate(username, password))
-        return self
+
+class FileBrowserClient:
+    def __init__(self, hosts: List[HostInfo] = []):
+        self.machine_list = []
+        for info in hosts:
+            self.machine_list.append(Machine(info.host, info.port).authenticate(info.username, info.password))
 
     def download_auth_file(self, fpath: str, save_path: str):
         error = None
@@ -90,5 +98,3 @@ class Machine(FileBrowserClientIFace):
 
     def build_auth_download_url(self, fpath: str) -> str:
         return build_url_from_base_url(self.base_url, f'/api/raw/{fpath}')
-
-
