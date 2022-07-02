@@ -73,6 +73,7 @@ class Machine(FileBrowserClientIFace):
         resp = self.s.get(url, headers=headers)
         if resp.status_code == 403: # token expired
             self.authenticate()
+            resp = self.s.get(url, headers=headers)
         if resp.status_code != 200:
             raise DownLoadException(resp.status_code, url)
         with open(save_path, 'wb') as f:
