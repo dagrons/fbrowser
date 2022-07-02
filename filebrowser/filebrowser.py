@@ -1,4 +1,3 @@
-import logging
 from dataclasses import dataclass
 
 import requests
@@ -21,7 +20,7 @@ class FileBrowserClient:
     def __init__(self, hosts: List[HostInfo] = []):
         self.machine_list = []
         for info in hosts:
-            self.machine_list.append(Machine(info.host, info.port).authenticate(info.username, info.password))
+            self.machine_list.append(Machine(info.host, info.port, info.username, info.password).authenticat())
 
     def download_auth_file(self, fpath: str, save_path: str):
         error = None
@@ -39,20 +38,22 @@ class FileBrowserClient:
 # wrap the http api as a client
 class Machine(FileBrowserClientIFace):
 
-    def __init__(self, host: str, port: str):
+    def __init__(self, host: str, port: str, username: str, password: str):
         self.s = requests.Session()
         self.base_url = build_http_url(host, port)
         self.auth_token = None
         self.share_token_cache = {}  # caches for token to avoid replicated http request
+        self.username = username
+        self.password = password
 
-    def authenticate(self, username: str, password: str):
+    def authenticate(self):
         auth_url = build_url_from_base_url(self.base_url, "/api/login")
         resp = self.s.post(auth_url, json={
-            "username": username,
-            "password": password,
+            "username": self.username,
+            "password": self.password,
         })
         if resp.status_code != 200:
-            raise AuthenticationFailedException(resp.status_code, username, password)
+            raise AuthenticationFailedException(resp.status_code, self.username, self.password)
         self.auth_token = resp.text
         return self
 
@@ -70,6 +71,8 @@ class Machine(FileBrowserClientIFace):
 
     def __download(self, save_path: str, url: str, headers={}):
         resp = self.s.get(url, headers=headers)
+        if resp.status_code == 403: # token expired
+            self.authenticate()
         if resp.status_code != 200:
             raise DownLoadException(resp.status_code, url)
         with open(save_path, 'wb') as f:
