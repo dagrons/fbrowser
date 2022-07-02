@@ -20,7 +20,7 @@ class FileBrowserClient:
     def __init__(self, hosts: List[HostInfo] = []):
         self.machine_list = []
         for info in hosts:
-            self.machine_list.append(Machine(info.host, info.port, info.username, info.password).authenticat())
+            self.machine_list.append(Machine(info.host, info.port, info.username, info.password).authenticate())
 
     def download_auth_file(self, fpath: str, save_path: str):
         error = None
